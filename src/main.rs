@@ -78,11 +78,14 @@ fn load_mesh(rec: &rerun::RecordingStream, args: &Args) -> anyhow::Result<()> {
             ));
         }
 
-        if let Some(entity_path_prefix) = &args.entity_path_prefix {
-            rec.log(entity_path_prefix.deref(), &mesh3d)?;
-        } else {
-            rec.log(rerun::EntityPath::from_file_path(&args.filepath), &mesh3d)?;
-        }
+        // If specified, entity_path_prefix will be the entity_path of the mesh.
+        // In other cases, it will be its file path.
+        let entity_path = args.entity_path_prefix.as_deref().map_or_else(
+            || rerun::EntityPath::from_file_path(&args.filepath),
+            rerun::EntityPath::from,
+        );
+
+        rec.log(entity_path, &mesh3d)?;
     }
 
     Ok::<_, anyhow::Error>(())
