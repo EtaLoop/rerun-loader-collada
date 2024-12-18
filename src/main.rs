@@ -1,6 +1,4 @@
-use std::ops::Deref;
-
-use rerun::{self, Rgba32, EXTERNAL_DATA_LOADER_INCOMPATIBLE_EXIT_CODE};
+use rerun::{self, EntityPath, Rgba32, EXTERNAL_DATA_LOADER_INCOMPATIBLE_EXIT_CODE};
 
 /// This is an executable data-loader plugin for the Rerun Viewer.
 /// Any executable on your `$PATH` with a name that starts with [`rerun-loader-`] will be
@@ -80,10 +78,15 @@ fn load_mesh(rec: &rerun::RecordingStream, args: &Args) -> anyhow::Result<()> {
 
         // If specified, entity_path_prefix will be the entity_path of the mesh.
         // In other cases, it will be its file path.
-        let entity_path = args.entity_path_prefix.as_deref().map_or_else(
-            || rerun::EntityPath::from_file_path(&args.filepath),
-            rerun::EntityPath::from,
-        );
+        let entity_path = args
+            .entity_path_prefix
+            .as_deref()
+            .map_or_else(
+                || rerun::EntityPath::from_file_path(&args.filepath),
+                rerun::EntityPath::from,
+            )
+            .join(&EntityPath::from("/"))
+            .join(&EntityPath::from(mesh.name.as_str()));
 
         rec.log(entity_path, &mesh3d)?;
     }
